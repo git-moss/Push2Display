@@ -1,0 +1,31 @@
+.vbox {
+	-fx-padding: 15.0;
+	-fx-spacing: 4.0;
+}
+
+.preview {
+    -fx-padding: 4.0 15.0 0.0 15.0;
+}
+
+.grid {
+	-fx-background-insets: 0.0 0.0 0.0 0.0;
+	-fx-padding: 0.0 0.0 0.0 0.0;
+	-fx-hgap: 10.0;
+	-fx-vgap: 4.0;
+}
+
+.padding {
+    -fx-padding: 15.0;
+}
+
+.display {
+    -fx-padding: 15.0 10.0 0.0 10.0;
+}
+
+.logging {
+    -fx-padding: 15.0 15.0 15.0 0.0;
+}
+
+.upperPane {
+    -fx-padding: 0.0 15.0 0.0 0.0;
+}
