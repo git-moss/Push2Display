@@ -54,8 +54,8 @@ public class OptionsGridElement extends AbstractGridElement
         drawLargeMenu (gc, left, 0, width, menuHeight, this.menuName, this.isMenuSelected, layoutSettings);
         drawLargeMenu (gc, left, DISPLAY_HEIGHT - 2 * MENU_HEIGHT, width, menuHeight, this.menuBottomName, this.isMenuBottomSelected, layoutSettings);
 
-        final boolean hasTopHeader = this.headerTop != null || this.headerTop.length () > 0;
-        final boolean hasBottomHeader = this.headerBottom != null || this.headerBottom.length () > 0;
+        final boolean hasTopHeader = this.headerTop != null && this.headerTop.length () > 0;
+        final boolean hasBottomHeader = this.headerBottom != null && this.headerBottom.length () > 0;
         if (!hasTopHeader && !hasBottomHeader)
             return;
 

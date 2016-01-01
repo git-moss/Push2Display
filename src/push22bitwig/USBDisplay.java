@@ -1,6 +1,9 @@
 package push22bitwig;
 
+import org.usb4java.Device;
+import org.usb4java.DeviceDescriptor;
 import org.usb4java.DeviceHandle;
+import org.usb4java.DeviceList;
 import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
@@ -12,6 +15,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.Iterator;
 
 
 /**
@@ -72,13 +76,13 @@ public class USBDisplay
         if (result != LibUsb.SUCCESS)
             throw new LibUsbException ("Unable to initialize libusb.", result);
 
-        this.handle = LibUsb.openDeviceWithVidPid (null, VENDOR_ID, PRODUCT_ID);
+        this.handle = openDeviceWithVidPid (VENDOR_ID, PRODUCT_ID);
         if (this.handle == null)
-            throw new LibUsbException ("Unable to open USB device", result);
+            throw new LibUsbException ("Unable to open USB device.", result);
 
         result = LibUsb.claimInterface (this.handle, INTERFACE_NUMBER);
         if (result != LibUsb.SUCCESS)
-            throw new LibUsbException ("Unable to claim interface", result);
+            throw new LibUsbException ("Unable to claim interface.", result);
     }
 
 
@@ -180,5 +184,60 @@ public class USBDisplay
 
         LibUsb.close (h);
         LibUsb.exit (null);
+    }
+
+
+    /**
+     * Find the device with the given vendor and product ID and open it.
+     *
+     * @param vendorId The vendor ID to look for
+     * @param productId The product ID to look for
+     * @return The device handle of the device or null if not found
+     */
+    private static DeviceHandle openDeviceWithVidPid (final short vendorId, final short productId)
+    {
+        final DeviceList list = new DeviceList ();
+        int result = LibUsb.getDeviceList (null, list);
+        if (result < LibUsb.SUCCESS)
+            throw new LibUsbException ("Unable to get device list.", result);
+
+        try
+        {
+            final Iterator<Device> iterator = list.iterator ();
+            LibUsbException ex = null;
+            while (iterator.hasNext ())
+            {
+                final Device device = iterator.next ();
+                final DeviceDescriptor descriptor = new DeviceDescriptor ();
+                result = LibUsb.getDeviceDescriptor (device, descriptor);
+                if (result != LibUsb.SUCCESS)
+                {
+                    ex = new LibUsbException ("Unable to read device descriptor.", result);
+                    // Continue, maybe there is a working device
+                    continue;
+                }
+                if (descriptor.idVendor () == vendorId && descriptor.idProduct () == productId)
+                {
+                    DeviceHandle handle = new DeviceHandle ();
+                    result = LibUsb.open (device, handle);
+                    if (result != LibUsb.SUCCESS)
+                    {
+                        ex = new LibUsbException ("Unable to read device descriptor.", result);
+                        // Continue, maybe there is a working device
+                        continue;
+                    }
+                    return handle;
+                }
+            }
+
+            if (ex != null)
+                throw ex;
+        }
+        finally
+        {
+            LibUsb.freeDeviceList (list, true);
+        }
+
+        return null;
     }
 }
