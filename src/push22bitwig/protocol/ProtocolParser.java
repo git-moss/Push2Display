@@ -184,7 +184,8 @@ public class ProtocolParser
         final String headerBottomName = parseString (in);
         final String menuBottomName = parseString (in);
         final boolean isMenuBottomSelected = parseBoolean (in);
-        return new OptionsGridElement (headerTopName, menuTopName, isMenuTopSelected, headerBottomName, menuBottomName, isMenuBottomSelected);
+        final boolean useSmallTopMenu = parseBoolean (in);
+        return new OptionsGridElement (headerTopName, menuTopName, isMenuTopSelected, headerBottomName, menuBottomName, isMenuBottomSelected, useSmallTopMenu);
     }
 
 

@@ -22,6 +22,7 @@ public class OptionsGridElement extends AbstractGridElement
     private final String  headerTop;
     private final String  menuBottomName;
     private final boolean isMenuBottomSelected;
+    private final boolean useSmallTopMenu;
 
 
     /**
@@ -34,14 +35,16 @@ public class OptionsGridElement extends AbstractGridElement
      *            null
      * @param menuBottomName A name for the bottom menu, may be null
      * @param isMenuBottomSelected Is the bottom menu selected?
+     * @param useSmallTopMenu Draw the small version of the top menu if true
      */
-    public OptionsGridElement (final String headerTop, final String menuTopName, final boolean isMenuTopSelected, final String headerBottom, final String menuBottomName, final boolean isMenuBottomSelected)
+    public OptionsGridElement (final String headerTop, final String menuTopName, final boolean isMenuTopSelected, final String headerBottom, final String menuBottomName, final boolean isMenuBottomSelected, final boolean useSmallTopMenu)
     {
         super (menuTopName, isMenuTopSelected, null, null, null, false);
         this.headerTop = headerTop;
         this.headerBottom = headerBottom;
         this.menuBottomName = menuBottomName;
         this.isMenuBottomSelected = isMenuBottomSelected;
+        this.useSmallTopMenu = useSmallTopMenu;
     }
 
 
@@ -51,7 +54,10 @@ public class OptionsGridElement extends AbstractGridElement
     {
         final int menuHeight = MENU_HEIGHT * 2;
 
-        drawLargeMenu (gc, left, 0, width, menuHeight, this.menuName, this.isMenuSelected, layoutSettings);
+        if (this.useSmallTopMenu)
+            this.drawMenu (gc, left, width, layoutSettings);
+        else
+            drawLargeMenu (gc, left, 0, width, menuHeight, this.menuName, this.isMenuSelected, layoutSettings);
         drawLargeMenu (gc, left, DISPLAY_HEIGHT - 2 * MENU_HEIGHT, width, menuHeight, this.menuBottomName, this.isMenuBottomSelected, layoutSettings);
 
         final boolean hasTopHeader = this.headerTop != null && this.headerTop.length () > 0;
