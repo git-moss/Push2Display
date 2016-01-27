@@ -82,7 +82,7 @@ public class DisplayEmulator extends Application
     private final USBDisplay           usbDisplay                  = new USBDisplay ();
     private final SimpleStringProperty title                       = new SimpleStringProperty ();
     private final Canvas               canvas                      = new Canvas ();
-    private final TextArea             logggingTextArea            = new TextArea ();
+    private final TextArea             loggingTextArea             = new TextArea ();
     private final TextField            bitwigCommand               = new TextField ();
     private final CheckBox             runAutomatically            = new CheckBox ();
     private final ComboBox<String>     fontBox                     = new ComboBox<> ();
@@ -118,7 +118,7 @@ public class DisplayEmulator extends Application
         // The main UI layout
         final StackPane canvasContainer = new StackPane (this.canvas);
         canvasContainer.getStyleClass ().add ("display");
-        final StackPane loggingContainer = new StackPane (this.logggingTextArea);
+        final StackPane loggingContainer = new StackPane (this.loggingTextArea);
         loggingContainer.getStyleClass ().add ("logging");
         final BorderPane root = new BorderPane (null, canvasContainer, null, null, null);
         final Scene scene = new Scene (root, javafx.scene.paint.Color.TRANSPARENT);
@@ -256,7 +256,7 @@ public class DisplayEmulator extends Application
         vuColorButton.valueProperty ().set (toFXColor (this.layoutSettings.getVuColor ()));
         editColorButton.valueProperty ().set (toFXColor (this.layoutSettings.getEditColor ()));
 
-        this.logggingTextArea.textProperty ().bind (this.model.getLogMessageProperty ());
+        this.loggingTextArea.textProperty ().bind (this.model.getLogMessageProperty ());
 
         this.model.addShutdownListener ((ChangeListener<Boolean>) (observable, oldValue, newValue) -> this.exit ());
 
