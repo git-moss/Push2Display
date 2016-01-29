@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Title: Push2Display
+Implementation-Version: 1.10
+Implementation-Vendor: Juergen Mossgraber

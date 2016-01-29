@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 
+    Builds Push2Display.
+    
+    The following properties must be handed to the script:
+    
+        build            The build folder of the Push2Display release
+-->
+<project default="FULL" basedir=".">
+
+    <property environment="env"/>
+    <property name="build" value="${env.build}"/>
+    <property name="checkout" value="${env.checkout}"/>
+    <property name="release" value="${build}/Release"/>
+
+    <target name="FULL" description="Build the full application" depends="LOG_PROPERTIES,CLEAN,BUILD,DEPLOY"/>
+    
+    <!-- Log some properties. -->
+    <target name="LOG_PROPERTIES">
+        <echo level="info" message="Running with Java ${ant.java.version}"/>
+        <echo level="info" message="build: ${build}"/>
+        <echo level="info" message="checkout: ${checkout}"/>
+    </target>
+    
+    <!-- Clean the build folder. -->
+    <target name="CLEAN" description="Clean up unneccessary files and folders">
+        <echo level="info" message="Clean up..."/>
+        <mkdir dir="${build}"/>
+        <delete failonerror="false" includeemptydirs="true">
+            <fileset dir="${build}"/>
+        </delete>
+        <mkdir dir="${build}"/>
+    </target>
+    
+    <!-- Build -->
+    <target name="BUILD">
+        <BuildProject path="." project="Push2Display" src="src"/>
+    </target>
+
+    
+    <!-- Collects all required libraries of a project, compiles the source, creates the jar -->
+    <macrodef name="BuildProject">
+        <attribute name="path"/>
+        <attribute name="project"/>
+        <attribute name="src"/>
+        <sequential>
+            <GetVersion project="@{project}" src="${checkout}/@{path}/@{src}"/>
+            <CopyLibs project="@{project}" path="@{path}"/>
+            <CompileProject project="@{project}" src="${checkout}/@{path}/@{src}" dst="${build}/@{project}/classes"/>
+            <CreateJar project="@{project}" src="${checkout}/@{path}/@{src}" dst="${build}" classes="${build}/@{project}/classes"/>
+            <DeployTerminalApp project="@{project}"/>
+        </sequential>
+    </macrodef>
+    
+
+    <!-- Deployment    TODO -->
+    <target name="DEPLOY" />
+    
+    
+    <!-- Read the version number from a MANIFEST file. -->    
+    <macrodef name="GetVersion">
+        <attribute name="project"/>
+        <attribute name="src"/>
+        <sequential>
+            <!-- Note: If the resource content is empty (maybe after processing a filterchain) the property is not set. -->
+            <loadfile srcfile="@{src}/META-INF/MANIFEST.MF" property="@{project}-specification-version">
+                <filterchain>
+                    <linecontains>
+                        <contains value="Specification-Version: "/>
+                    </linecontains>
+                    <striplinebreaks/>
+                    <replacestring from="Specification-Version: " to=""/>
+                    <deletecharacters chars=" \t"/>
+                </filterchain>
+            </loadfile>
+            <loadfile srcfile="@{src}/META-INF/MANIFEST.MF" property="@{project}-implementation-version">
+                <filterchain>
+                    <linecontains>
+                        <contains value="Implementation-Version: "/>
+                    </linecontains>
+                    <striplinebreaks/>
+                    <replacestring from="Implementation-Version: " to=""/>
+                    <deletecharacters chars=" \t"/>
+                </filterchain>
+            </loadfile>
+            <condition property="@{project}-version" value="${@{project}-specification-version}" else="${@{project}-implementation-version}">
+                <isset property="@{project}-specification-version" />
+            </condition>
+        </sequential>
+    </macrodef>
+
+    <!-- Parses the Eclipse .classpath file for libraries and included projects and copies them to a folder -->
+    <macrodef name="CopyLibs">
+        <attribute name="project"/>
+        <attribute name="path"/>
+        <sequential>
+            <echo level="info" message="Collecting libraries for @{project}..."/>
+            <!-- Parse the libraries from the .classpath file -->
+            <loadfile srcfile="${checkout}/@{path}/.classpath" property="@{project}.jars">
+                <filterchain>
+                    <replaceregex pattern=".* kind=&quot;lib&quot; path=&quot;/(.*?)&quot;.*" replace="\1" flags="gi"/>
+                    <replaceregex pattern=".* kind=&quot;lib&quot; path=&quot;(.*?)&quot;.*" replace="\1" flags="gi"/>
+                    <!-- Remove other XML tags -->
+                    <replaceregex pattern="&lt;.*&gt;" flags="gi"/>
+                    <trim/>
+                    <ignoreblank/>
+                </filterchain>
+            </loadfile>
+            <!-- If there are no libraries write an empty file. Note: properties are only set if they do not exist yet! -->
+            <property name="@{project}.jars" value=""/>
+            <echo file="${build}/@{project}-classpath" append="true">${@{project}.jars}</echo>
+            <!-- Parse the included projects from the .classpath file -->
+            <loadfile srcfile="${checkout}/@{path}/.classpath" property="@{project}.projects">
+                <filterchain>
+                    <containsregex pattern=".* kind=&quot;src&quot; path=&quot;/(.*?)&quot;.*" replace="**/\1-classpath" flags="gi"/>
+                </filterchain>
+            </loadfile>
+            <!-- If there are included projects store them in a file -->
+            <antcall target="COND_INTERPRET_PROJECT_FILE">
+                <param name="filename" value="@{project}-projects"/>
+                <param name="project" value="@{project}"/>
+                <param name="project-prop" value="@{project}.projects"/>
+                <param name="project-value" value="${@{project}.projects}"/>
+            </antcall>
+        </sequential>
+    </macrodef>
+    <target name="COND_INTERPRET_PROJECT_FILE" if="${project-prop}">
+        <echo file="${build}/${filename}" append="true">${project-value}</echo>
+        <concat destfile="${build}/${project}-classpath" append="true">
+            <fileset dir="${build}" includesfile="${build}/${filename}"/>
+        </concat>
+        <loadfile srcfile="${build}/${filename}" property="project.appends">
+            <filterchain>
+                <replaceregex pattern="\*\*(.*)-classpath" replace="${build}\1*.jar" flags="gi"/>
+            </filterchain>
+        </loadfile>
+        <echo file="${build}/${project}-classpath" append="true">${project.appends}</echo>
+        <delete file="${build}/${filename}"/>
+    </target>
+
+    <!-- Compile the project source. -->
+    <macrodef name="CompileProject">
+        <attribute name="project"/>
+        <attribute name="src"/>
+        <attribute name="dst"/>
+        <sequential>
+            <echo level="info" message="Compiling @{project}..."/>
+            <mkdir dir="@{dst}"/>
+            <available file="${build}/@{project}-classpath" property="@{project}Exists"/>
+            <javac srcdir="@{src}" destdir="@{dst}" fork="no" debug="true" debuglevel="lines,vars,source" encoding="UTF-8" includeAntRuntime="false">
+                <classpath>
+                    <fileset dir="${checkout}/" includesfile="${build}/@{project}-classpath"/>
+                </classpath>
+            </javac>
+            <copy todir="@{dst}">
+                <fileset dir="@{src}" excludes="**/*.java"/>
+            </copy>
+        </sequential>
+    </macrodef>
+
+    <!-- Creates a JAR file for a project. -->
+    <macrodef name="CreateJar">
+        <attribute name="project"/>
+        <attribute name="src"/>
+        <attribute name="dst"/>
+        <attribute name="classes"/>
+        <sequential>
+            <echo level="info" message="Creating JAR-file for @{project}..."/>
+            <tempfile property="@{project}.mergedManifestFile" suffix=".MANIFEST.MF" deleteonexit="true"/>
+            <copy file="@{src}/META-INF/MANIFEST.MF" tofile="${@{project}.mergedManifestFile}" overwrite="true"/>        
+            <tstamp>
+                <format property="@{project}.build.timestamp" pattern="yyyy-MM-dd HH:mm:ss z" />
+            </tstamp>
+            <manifest file="${@{project}.mergedManifestFile}" mode="update">
+                <attribute name="Ant-Version" value="${ant.version}" />
+                <attribute name="Created-By" value="${java.version} (${java.vendor})" />
+                <attribute name="Built-By" value="${user.name}" />
+                <attribute name="Built-Timestamp" value="${@{project}.build.timestamp}" />
+            </manifest>
+            <jar destfile="@{dst}/@{project}-${@{project}-version}.jar" basedir="@{classes}" manifest="${@{project}.mergedManifestFile}"/>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="DeployTerminalApp">
+        <attribute name="project"/>
+        <sequential>
+            <copy todir="${release}/@{project}" flatten="true">
+                <fileset dir="${checkout}/" includesfile="${build}/@{project}-classpath"/>
+                <fileset file="${build}/@{project}-${@{project}-version}.jar"/>
+            </copy>
+        </sequential>
+    </macrodef>
+
+</project>

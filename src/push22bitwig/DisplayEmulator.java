@@ -100,7 +100,15 @@ public class DisplayEmulator extends Application
      */
     public DisplayEmulator ()
     {
-        this.title.set ("Push 2 Display");
+        final StringBuilder title = new StringBuilder ("Push 2 Display");
+        final Package p = Package.getPackage ("push22bitwig");
+        if (p != null)
+        {
+            final String implementationVersion = p.getImplementationVersion ();
+            if (implementationVersion != null)
+                title.append (' ').append (implementationVersion);
+        }
+        this.title.set (title.toString ());
     }
 
 
