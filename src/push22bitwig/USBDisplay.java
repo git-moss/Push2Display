@@ -78,7 +78,7 @@ public class USBDisplay
 
         this.handle = openDeviceWithVidPid (VENDOR_ID, PRODUCT_ID);
         if (this.handle == null)
-            throw new LibUsbException ("Unable to open USB device.", result);
+            throw new LibUsbException ("Device not found.", LibUsb.ERROR_NO_DEVICE);
 
         result = LibUsb.claimInterface (this.handle, INTERFACE_NUMBER);
         if (result != LibUsb.SUCCESS)
