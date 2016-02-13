@@ -13,13 +13,16 @@ import java.awt.geom.Rectangle2D;
 
 /**
  * Abstract base class for an element in the grid.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber
  */
 public abstract class AbstractGridElement implements GridElement
 {
+    /** The maximum possible value for a parameter. */
+    private static double   maxValue = 1024;
+
     private final String    name;
     private final String    icon;
     private final Color     color;
@@ -227,5 +230,27 @@ public abstract class AbstractGridElement implements GridElement
         gc.setColor (this.isMenuSelected ? borderColor : textColor);
         gc.setFont (layoutSettings.getTextFont (UNIT));
         drawTextInBounds (gc, this.menuName, left, 0, width, UNIT + SEPARATOR_SIZE, Label.CENTER);
+    }
+
+
+    /**
+     * Get the maximum value range.
+     *
+     * @return The maximum value
+     */
+    public static double getMaxValue ()
+    {
+        return maxValue;
+    }
+
+
+    /**
+     * Set the maximum value range. The default is 1024.0.
+     *
+     * @param maxValue The new maximum value
+     */
+    public static void setMaxValue (final double maxValue)
+    {
+        AbstractGridElement.maxValue = maxValue;
     }
 }

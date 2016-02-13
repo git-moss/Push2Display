@@ -51,65 +51,51 @@ import java.io.InputStream;
 
 /**
  * Main window which provides the user interface.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber
  */
 public class DisplayEmulator extends Application
 {
-    private static final String        TAG_TEXT_FONT               = "TEXT_FONT";
-    private static final String        TAG_TEXT_COLOR              = "TEXT_COLOR";
-    private static final String        TAG_BACKGROUND_COLOR        = "BACKGROUND_COLOR";
-    private static final String        TAG_PORT                    = "PORT";
-    private static final String        TAG_PREVIEW                 = "PREVIEW";
-    private static final String        TAG_BITWIG_COMMAND          = "BITWIG_COMMAND";
-    private static final String        TAG_RUN_AUTOMATICALLY       = "RUN_AUTOMATICALLY";
+    private static final String          TAG_TEXT_FONT               = "TEXT_FONT";
+    private static final String          TAG_TEXT_COLOR              = "TEXT_COLOR";
+    private static final String          TAG_BACKGROUND_COLOR        = "BACKGROUND_COLOR";
+    private static final String          TAG_PORT                    = "PORT";
+    private static final String          TAG_PREVIEW                 = "PREVIEW";
+    private static final String          TAG_BITWIG_COMMAND          = "BITWIG_COMMAND";
+    private static final String          TAG_RUN_AUTOMATICALLY       = "RUN_AUTOMATICALLY";
 
-    private static final String        DEFAULT_BITWIG_PATH_WINDOWS = "C:\\Program Files (x86)\\Bitwig Studio\\Bitwig Studio.exe";
-    private static final String        DEFAULT_BITWIG_PATH_MAC     = "/Applications/Bitwig Studio.app";
-    private static final String        DEFAULT_BITWIG_PATH_UNIX    = "/opt/bitwig-studio/bitwig-studio";
+    private static final String          DEFAULT_BITWIG_PATH_WINDOWS = "C:\\Program Files (x86)\\Bitwig Studio\\Bitwig Studio.exe";
+    private static final String          DEFAULT_BITWIG_PATH_MAC     = "/Applications/Bitwig Studio.app";
+    private static final String          DEFAULT_BITWIG_PATH_UNIX    = "/opt/bitwig-studio/bitwig-studio";
 
-    private static final int           MIN_WIDTH_LEFT              = 200;
+    private static final int             MIN_WIDTH_LEFT              = 200;
 
-    private final File                 configFile                  = new File ("Push2Display.config");
-    private final PropertiesEx         properties                  = new PropertiesEx ();
+    protected final SimpleStringProperty title                       = new SimpleStringProperty ();
+    protected final DisplayModel         model                       = new DisplayModel ();
+    protected GridPane                   portPane;
+    protected StackPane                  loggingContainer;
 
-    private final DisplayModel         model                       = new DisplayModel ();
-    private final UDPReceiver          udpReceiver                 = new UDPReceiver (this.model);
-    private final LayoutSettings       layoutSettings              = new LayoutSettings ();
-    private final VirtualDisplay       virtualDisplay              = new VirtualDisplay (this.model, this.layoutSettings);
-    private final USBDisplay           usbDisplay                  = new USBDisplay ();
-    private final SimpleStringProperty title                       = new SimpleStringProperty ();
-    private final Canvas               canvas                      = new Canvas ();
-    private final TextArea             loggingTextArea             = new TextArea ();
-    private final TextField            bitwigCommand               = new TextField ();
-    private final CheckBox             runAutomatically            = new CheckBox ();
-    private final ComboBox<String>     fontBox                     = new ComboBox<> ();
-    private Stage                      stage;
+    private File                         configFile                  = null;
+    private final PropertiesEx           properties                  = new PropertiesEx ();
 
-    private int                        port                        = 7000;
-    private boolean                    enablePreview               = true;
+    private final UDPReceiver            udpReceiver                 = new UDPReceiver (this.model);
+    private final LayoutSettings         layoutSettings              = new LayoutSettings ();
+    private final VirtualDisplay         virtualDisplay              = new VirtualDisplay (this.model, this.layoutSettings);
+    private final USBDisplay             usbDisplay                  = new USBDisplay ();
+    private final Canvas                 canvas                      = new Canvas ();
+    private final TextArea               loggingTextArea             = new TextArea ();
+    private final TextField              applicationCommand          = new TextField ();
+    private final CheckBox               runAutomatically            = new CheckBox ();
+    private final ComboBox<String>       fontBox                     = new ComboBox<> ();
+    private Stage                        stage;
 
-    private double                     minWidth                    = 960;
-    private double                     minHeight                   = 160;
+    private int                          port                        = 7000;
+    private boolean                      enablePreview               = true;
 
-
-    /**
-     * Constructor.
-     */
-    public DisplayEmulator ()
-    {
-        final StringBuilder title = new StringBuilder ("Push 2 Display");
-        final Package p = Package.getPackage ("push22bitwig");
-        if (p != null)
-        {
-            final String implementationVersion = p.getImplementationVersion ();
-            if (implementationVersion != null)
-                title.append (' ').append (implementationVersion);
-        }
-        this.title.set (title.toString ());
-    }
+    private double                       minWidth                    = 960;
+    private double                       minHeight                   = 160;
 
 
     /** {@inheritDoc} */
@@ -117,20 +103,82 @@ public class DisplayEmulator extends Application
     public void start (final Stage stage)
     {
         this.stage = stage;
-
+        this.setTitle ();
         this.loadConfig ();
+        final Scene scene = this.createUI ();
+        this.model.addShutdownListener ((ChangeListener<Boolean>) (observable, oldValue, newValue) -> this.exit ());
+        this.showStage (stage, scene);
+        this.startup ();
+    }
 
+
+    /**
+     * Startup the display cycle, the UDP receiption and connect to the display.
+     */
+    protected void startup ()
+    {
+        this.startDisplayUpdate ();
+        this.startUDPReceiver ();
+        this.connectToDisplay ();
+    }
+
+
+    /**
+     * Start update display cycle.
+     */
+    protected void startDisplayUpdate ()
+    {
+        new AnimationTimer ()
+        {
+            @Override
+            public void handle (final long now)
+            {
+                DisplayEmulator.this.updateDisplay ();
+            }
+        }.start ();
+    }
+
+
+    /**
+     * Connect to display via USB.
+     */
+    protected void connectToDisplay ()
+    {
+        try
+        {
+            this.usbDisplay.connect ();
+        }
+        catch (final LibUsbException ex)
+        {
+            this.model.addLogMessage (ex.getLocalizedMessage ());
+        }
+    }
+
+
+    /**
+     * Start the UDP receiver.
+     */
+    protected void startUDPReceiver ()
+    {
+        this.udpReceiver.start (this.port);
+    }
+
+
+    /**
+     * Create the UI of the application.
+     *
+     * @return The scene
+     */
+    protected Scene createUI ()
+    {
         this.canvas.widthProperty ().set (this.minWidth);
         this.canvas.heightProperty ().set (this.minHeight);
 
         // The main UI layout
         final StackPane canvasContainer = new StackPane (this.canvas);
         canvasContainer.getStyleClass ().add ("display");
-        final StackPane loggingContainer = new StackPane (this.loggingTextArea);
-        loggingContainer.getStyleClass ().add ("logging");
-        final BorderPane root = new BorderPane (null, canvasContainer, null, null, null);
-        final Scene scene = new Scene (root, javafx.scene.paint.Color.TRANSPARENT);
-        scene.getStylesheets ().add ("css/DefaultStyles.css");
+        this.loggingContainer = new StackPane (this.loggingTextArea);
+        this.loggingContainer.getStyleClass ().add ("logging");
 
         // The drawing options
 
@@ -156,21 +204,21 @@ public class DisplayEmulator extends Application
         leftChildren.add (resetButton);
         resetButton.setMinWidth (200);
 
-        // The Bitwig executable path
+        // The DAW executable path
         final GridPane centerGridPane = new GridPane ();
         centerGridPane.getStyleClass ().add ("grid");
-        final Label bitwigPathLabel = new Label ("Bitwig Path:");
-        bitwigPathLabel.setLabelFor (this.bitwigCommand);
-        this.bitwigCommand.setPrefWidth (400);
-        centerGridPane.add (bitwigPathLabel, 0, 0);
+        final Label dawPathLabel = new Label ("DAW Path:");
+        dawPathLabel.setLabelFor (this.applicationCommand);
+        this.applicationCommand.setPrefWidth (400);
+        centerGridPane.add (dawPathLabel, 0, 0);
         final Label runAutomaticallyLabel = new Label ("Run automatically");
         runAutomaticallyLabel.setLabelFor (this.runAutomatically);
         centerGridPane.add (new HBox (this.runAutomatically, runAutomaticallyLabel), 2, 0);
         final Button selectFileButton = new Button ("...");
-        selectFileButton.setOnAction (e -> this.selectBitwigFile ());
+        selectFileButton.setOnAction (e -> this.selectDAWExecutable ());
         final Button runButton = new Button ("Run");
-        runButton.setOnAction (e -> this.runBitwig ());
-        centerGridPane.add (new BorderPane (this.bitwigCommand, null, new BorderPane (null, null, runButton, null, selectFileButton), null, null), 0, 1, 3, 1);
+        runButton.setOnAction (e -> this.runDAW ());
+        centerGridPane.add (new BorderPane (this.applicationCommand, null, new BorderPane (null, null, runButton, null, selectFileButton), null, null), 0, 1, 3, 1);
 
         // The display port configuration
         final TextField portField = new TextField (Integer.toString (this.port));
@@ -182,19 +230,19 @@ public class DisplayEmulator extends Application
             if (newPort == this.port)
                 return;
             this.port = newPort;
-            this.udpReceiver.start (this.port);
+            this.startUDPReceiver ();
         });
-        final GridPane rightGridPane = new GridPane ();
-        rightGridPane.getStyleClass ().add ("grid");
+        this.portPane = new GridPane ();
+        this.portPane.getStyleClass ().add ("grid");
         final Label displayPortLabel = new Label ("Display Port:");
         displayPortLabel.setLabelFor (portField);
-        rightGridPane.add (displayPortLabel, 0, 0);
-        rightGridPane.add (new BorderPane (portField, null, applyButton, null, null), 0, 1);
+        this.portPane.add (displayPortLabel, 0, 0);
+        this.portPane.add (new BorderPane (portField, null, applyButton, null, null), 0, 1);
 
         // All options
-        final BorderPane upperPane = new BorderPane (centerGridPane, null, rightGridPane, null, null);
-        rightGridPane.getStyleClass ().add ("upperPane");
-        final BorderPane centerPart = new BorderPane (loggingContainer, upperPane, null, null, null);
+        final BorderPane upperPane = new BorderPane (centerGridPane, null, this.portPane, null, null);
+        upperPane.getStyleClass ().add ("upperPane");
+        final BorderPane centerPart = new BorderPane (this.loggingContainer, upperPane, null, null, null);
         final BorderPane optionsPane = new BorderPane (centerPart, null, null, null, leftGridPane);
 
         final CheckBox enablePreviewBox = new CheckBox ();
@@ -204,8 +252,10 @@ public class DisplayEmulator extends Application
         previewLabel.setLabelFor (enablePreviewBox);
         final HBox previewBoxPane = new HBox (enablePreviewBox, previewLabel);
         previewBoxPane.getStyleClass ().add ("preview");
-        root.setCenter (previewBoxPane);
-        root.setBottom (optionsPane);
+
+        final BorderPane root = new BorderPane (previewBoxPane, canvasContainer, null, optionsPane, null);
+        final Scene scene = new Scene (root, javafx.scene.paint.Color.TRANSPARENT);
+        scene.getStylesheets ().add ("css/DefaultStyles.css");
 
         // Set and link drawing options in both directions
         textColorButton.valueProperty ().addListener ((ChangeListener<Color>) (observable, oldValue, newValue) -> {
@@ -265,30 +315,7 @@ public class DisplayEmulator extends Application
         editColorButton.valueProperty ().set (toFXColor (this.layoutSettings.getEditColor ()));
 
         this.loggingTextArea.textProperty ().bind (this.model.getLogMessageProperty ());
-
-        this.model.addShutdownListener ((ChangeListener<Boolean>) (observable, oldValue, newValue) -> this.exit ());
-
-        this.showStage (stage, scene);
-
-        // Update & render loop
-        new AnimationTimer ()
-        {
-            @Override
-            public void handle (final long now)
-            {
-                DisplayEmulator.this.updateDisplay ();
-            }
-        }.start ();
-
-        try
-        {
-            this.udpReceiver.start (this.port);
-            this.usbDisplay.connect ();
-        }
-        catch (final LibUsbException ex)
-        {
-            this.model.addLogMessage (ex.getLocalizedMessage ());
-        }
+        return scene;
     }
 
 
@@ -324,7 +351,7 @@ public class DisplayEmulator extends Application
      *
      * @param event The event to consume
      */
-    private void exit (final WindowEvent event)
+    protected void exit (final WindowEvent event)
     {
         event.consume ();
         this.exit ();
@@ -341,12 +368,29 @@ public class DisplayEmulator extends Application
 
 
     /**
+     * Set the applications title.
+     */
+    protected void setTitle ()
+    {
+        final StringBuilder title = new StringBuilder ("Push 2 Display");
+        final Package p = Package.getPackage ("push22bitwig");
+        if (p != null)
+        {
+            final String implementationVersion = p.getImplementationVersion ();
+            if (implementationVersion != null)
+                title.append (' ').append (implementationVersion);
+        }
+        this.title.set (title.toString ());
+    }
+
+
+    /**
      * Configures and shows the stage.
      *
      * @param stage The stage to start
      * @param scene The scene to set
      */
-    private void showStage (final Stage stage, final Scene scene)
+    protected void showStage (final Stage stage, final Scene scene)
     {
         stage.titleProperty ().bind (this.title);
         stage.setResizable (false);
@@ -365,8 +409,10 @@ public class DisplayEmulator extends Application
     /**
      * Load the settings from the config file.
      */
-    private void loadConfig ()
+    protected void loadConfig ()
     {
+        this.configFile = new File (this.getConfigurationFilename ());
+
         if (this.configFile.exists ())
         {
 
@@ -388,7 +434,7 @@ public class DisplayEmulator extends Application
                 this.port = this.properties.getInt (TAG_PORT, 7000);
                 this.enablePreview = this.properties.getBoolean (TAG_PREVIEW, true);
 
-                this.bitwigCommand.setText (this.properties.getString (TAG_BITWIG_COMMAND, getDefaultBitwigPath ()));
+                this.applicationCommand.setText (this.properties.getString (TAG_BITWIG_COMMAND, this.getDefaultApplicationPath ()));
                 this.runAutomatically.setSelected (this.properties.getBoolean (TAG_RUN_AUTOMATICALLY, true));
             }
             catch (final IOException ex)
@@ -398,16 +444,43 @@ public class DisplayEmulator extends Application
         }
         else
         {
-            this.bitwigCommand.setText (getDefaultBitwigPath ());
+            this.applicationCommand.setText (this.getDefaultApplicationPath ());
             this.runAutomatically.setSelected (true);
         }
 
         if (this.runAutomatically.isSelected ())
-            this.runBitwig ();
+            this.runDAW ();
     }
 
 
-    private static String getDefaultBitwigPath ()
+    /**
+     * Get the name of the configuration file.
+     *
+     * @return The name of the configuration file.
+     */
+    protected String getConfigurationFilename ()
+    {
+        return "Push2Display.config";
+    }
+
+
+    /**
+     * Get the UDP receiver.
+     *
+     * @return The UDP receiver
+     */
+    protected UDPReceiver getUdpReceiver ()
+    {
+        return this.udpReceiver;
+    }
+
+
+    /**
+     * Get the default full path to the application to start.
+     *
+     * @return The application path depending on the operating system
+     */
+    protected String getDefaultApplicationPath ()
     {
         switch (OperatingSystem.get ())
         {
@@ -431,7 +504,7 @@ public class DisplayEmulator extends Application
         this.properties.putInt (TAG_BACKGROUND_COLOR, this.layoutSettings.getBackgroundColor ().getRGB ());
         this.properties.putInt (TAG_PORT, this.port);
         this.properties.putBoolean (TAG_PREVIEW, this.enablePreview);
-        this.properties.putString (TAG_BITWIG_COMMAND, this.bitwigCommand.getText ());
+        this.properties.putString (TAG_BITWIG_COMMAND, this.applicationCommand.getText ());
         this.properties.putBoolean (TAG_RUN_AUTOMATICALLY, this.runAutomatically.isSelected ());
 
         try (final FileWriter writer = new FileWriter (this.configFile))
@@ -479,7 +552,7 @@ public class DisplayEmulator extends Application
     /**
      * Select the Bitwig executable.
      */
-    private void selectBitwigFile ()
+    private void selectDAWExecutable ()
     {
         final FileChooser chooser = new FileChooser ();
         chooser.setTitle ("Select the Bitwig Studio executable file");
@@ -492,19 +565,19 @@ public class DisplayEmulator extends Application
 
         final File file = chooser.showOpenDialog (this.stage);
         if (file != null)
-            this.bitwigCommand.setText (file.getAbsolutePath ());
+            this.applicationCommand.setText (file.getAbsolutePath ());
     }
 
 
     /**
      * Start Bitwig.
      */
-    private void runBitwig ()
+    private void runDAW ()
     {
         Platform.runLater ( () -> {
             try
             {
-                final String text = this.bitwigCommand.getText ();
+                final String text = this.applicationCommand.getText ();
                 switch (OperatingSystem.get ())
                 {
                     case MAC:

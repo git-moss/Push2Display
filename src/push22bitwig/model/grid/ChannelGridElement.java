@@ -15,7 +15,7 @@ import java.io.IOException;
 
 /**
  * An element in the grid which contains the channel settings: Volume, VU, Pan, Mute, Solo and Arm.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber
@@ -61,7 +61,7 @@ public class ChannelGridElement extends ChannelSelectionGridElement
      * @param isMute True if muted
      * @param isSolo True if soloed
      * @param isArm True if recording is armed
-     * @param crossfadeMode
+     * @param crossfadeMode The crossfader mode: 0 = A, 1 = AB, B = 2, -1 turns it off
      */
     public ChannelGridElement (final int editType, final String menuName, final boolean isMenuSelected, final String name, final Color color, final boolean isSelected, final ChannelType type, final int volumeValue, final String volumeText, final int panValue, final String panText, final int vuValue, final boolean isMute, final boolean isSolo, final boolean isArm, final int crossfadeMode)
     {
@@ -137,7 +137,7 @@ public class ChannelGridElement extends ChannelSelectionGridElement
         final Color editColor = layoutSettings.getEditColor ();
 
         final ChannelType type = this.getType ();
-        if (type != ChannelType.MASTER && type != ChannelType.LAYER)
+        if (type != ChannelType.MASTER && type != ChannelType.LAYER && this.crossfadeMode != -1)
         {
             // Crossfader A|B
             final int crossWidth = controlWidth / 3;
@@ -157,14 +157,15 @@ public class ChannelGridElement extends ChannelSelectionGridElement
         final int panRange = panWidth / 2;
         final int panMiddle = panStart + panRange;
         gc.drawLine (panMiddle, panTop, panMiddle, panTop + panHeight);
-        final int halfMax = MAX_VALUE / 2;
+        final double maxValue = getMaxValue ();
+        final double halfMax = maxValue / 2;
         final Color faderColor = layoutSettings.getFaderColor ();
         gc.setColor (faderColor);
         final boolean isPanTouched = this.panText.length () > 0;
         if (this.panValue > halfMax)
         {
             // Panned to the right
-            final int v = (this.panValue - halfMax) * panRange / halfMax;
+            final int v = (int) ((this.panValue - halfMax) * panRange / halfMax);
             gc.fillRect (panMiddle + 1, CONTROLS_TOP + 1, v, panHeight);
             if (this.editType == EDIT_TYPE_PAN || this.editType == EDIT_TYPE_ALL)
             {
@@ -177,7 +178,7 @@ public class ChannelGridElement extends ChannelSelectionGridElement
         else
         {
             // Panned to the left
-            final int v = panRange - this.panValue * panRange / halfMax;
+            final int v = (int) (panRange - this.panValue * panRange / halfMax);
             gc.fillRect (panMiddle - v, CONTROLS_TOP + 1, v, panHeight);
             if (this.editType == EDIT_TYPE_PAN || this.editType == EDIT_TYPE_ALL)
             {
@@ -191,7 +192,7 @@ public class ChannelGridElement extends ChannelSelectionGridElement
         // Volume slider
         // Ensure that maximum value is reached even if rounding errors happen
         final int volumeWidth = controlWidth - 2 * SEPARATOR_SIZE - faderOffset;
-        final int volumeHeight = this.volumeValue == MAX_VALUE - 1 ? faderInnerHeight : faderInnerHeight * this.volumeValue / MAX_VALUE;
+        final int volumeHeight = (int) (this.volumeValue >= maxValue - 1 ? faderInnerHeight : faderInnerHeight * this.volumeValue / maxValue);
         final int volumeOffset = faderInnerHeight - volumeHeight;
         final int volumeTop = faderTop + SEPARATOR_SIZE + volumeOffset;
         gc.setColor (faderColor);
@@ -206,7 +207,7 @@ public class ChannelGridElement extends ChannelSelectionGridElement
 
         // VU
         gc.setColor (backgroundDarker);
-        final int vuHeight = this.vuValue == MAX_VALUE - 1 ? faderInnerHeight : faderInnerHeight * this.vuValue / MAX_VALUE;
+        final int vuHeight = (int) (this.vuValue >= maxValue - 1 ? faderInnerHeight : faderInnerHeight * this.vuValue / maxValue);
         final int vuOffset = faderInnerHeight - vuHeight;
         gc.fillRect (controlStart + SEPARATOR_SIZE, faderTop + SEPARATOR_SIZE, faderOffset - SEPARATOR_SIZE, faderInnerHeight);
         gc.setColor (layoutSettings.getVuColor ());
@@ -243,7 +244,7 @@ public class ChannelGridElement extends ChannelSelectionGridElement
         // Draw volume text on top if set
         if (isVolumeTouched)
         {
-            final int volumeTextTop = this.volumeValue == MAX_VALUE - 1 ? faderTop : Math.min (volumeTop - 1, faderTop + faderInnerHeight + SEPARATOR_SIZE - UNIT + 1);
+            final int volumeTextTop = this.volumeValue >= maxValue - 1 ? faderTop : Math.min (volumeTop - 1, faderTop + faderInnerHeight + SEPARATOR_SIZE - UNIT + 1);
             gc.setColor (backgroundDarker);
             gc.fillRect (volumeTextLeft, volumeTextTop, volumeTextWidth, UNIT);
             gc.setColor (borderColor);

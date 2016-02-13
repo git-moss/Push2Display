@@ -14,7 +14,7 @@ import java.util.EnumMap;
 
 /**
  * An element in the grid which contains a menu and a channels' icon, name and color.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber
@@ -120,7 +120,10 @@ public class ChannelSelectionGridElement extends AbstractGridElement
             gc.drawImage (icon, left + (DOUBLE_UNIT - icon.getWidth ()) / 2, height - TRACK_ROW_HEIGHT - UNIT + (TRACK_ROW_HEIGHT - icon.getHeight ()) / 2, null);
             gc.setColor (textColor);
             gc.setFont (layoutSettings.getTextFont ((int) (1.2 * UNIT)));
+
+            gc.clipRect (left + DOUBLE_UNIT, trackRowTop, width - DOUBLE_UNIT - INSET, TRACK_ROW_HEIGHT);
             drawTextInBounds (gc, name, left + DOUBLE_UNIT, trackRowTop, width, TRACK_ROW_HEIGHT, Label.LEFT);
+            gc.clip (null);
         }
 
         // The track color section

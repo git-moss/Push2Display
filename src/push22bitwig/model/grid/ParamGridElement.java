@@ -11,7 +11,7 @@ import java.io.IOException;
 
 /**
  * An element in the grid which contains a fader and text for a value.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber
@@ -85,7 +85,8 @@ public class ParamGridElement extends ChannelSelectionGridElement
         if (isValueMissing)
             return;
         final int elementInnerWidth = elementWidth - 2;
-        final int valueWidth = this.paramValue == MAX_VALUE - 1 ? elementInnerWidth : elementInnerWidth * this.paramValue / MAX_VALUE;
+        final double maxValue = getMaxValue ();
+        final int valueWidth = (int) (this.paramValue >= maxValue - 1 ? elementInnerWidth : elementInnerWidth * this.paramValue / maxValue);
         final int innerTop = CONTROLS_TOP + 2 * elementHeight + 1;
         final Color borderColor = layoutSettings.getBorderColor ();
         gc.setColor (borderColor);

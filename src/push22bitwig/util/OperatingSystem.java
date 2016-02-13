@@ -5,7 +5,7 @@ import java.util.Locale;
 
 /**
  * Determine the operating system we are running.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber

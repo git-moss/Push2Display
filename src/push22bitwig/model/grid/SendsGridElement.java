@@ -12,7 +12,7 @@ import java.io.IOException;
 
 /**
  * An element in the grid which contains a menu and a channels' sends 1-4 or 5-8.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber
@@ -123,7 +123,7 @@ public class SendsGridElement extends ChannelSelectionGridElement
             topy += sendRowHeight;
             gc.setColor (borderColor);
             gc.fillRect (faderLeft, topy + SEPARATOR_SIZE, sliderWidth, sliderHeight);
-            final int valueWidth = this.sendValues[i] * sliderWidth / MAX_VALUE;
+            final int valueWidth = (int) (this.sendValues[i] * sliderWidth / getMaxValue ());
             gc.setColor (faderColor);
             final int faderTop = topy + SEPARATOR_SIZE + 1;
             gc.fillRect (faderLeft + 1, faderTop, valueWidth - 1, sliderHeight - 2);

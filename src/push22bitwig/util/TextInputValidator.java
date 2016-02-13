@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 /**
  * Can be applied to a text field to limit the text input to the given regular expression.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber

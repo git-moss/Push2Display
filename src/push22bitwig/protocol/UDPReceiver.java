@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Receives data from Bitwig via UDP.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber
@@ -108,7 +108,7 @@ public class UDPReceiver
      * @param data The data buffer with the received data
      * @param length The length of usable data in the buffer
      */
-    void handleData (final byte [] data, final int length)
+    public void handleData (final byte [] data, final int length)
     {
         // -16 == 0xF0, -9 == 0xF7
         if (data[0] != -16 || data[length - 1] != -9)

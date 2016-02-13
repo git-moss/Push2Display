@@ -2,6 +2,7 @@ package push22bitwig.model;
 
 import push22bitwig.model.grid.GridElement;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
@@ -15,7 +16,7 @@ import java.util.List;
 
 /**
  * Contains the data for the display content.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber
@@ -65,13 +66,15 @@ public class DisplayModel
      *
      * @param message The message to add
      */
-    public void addLogMessage (final String message)
+    public synchronized void addLogMessage (final String message)
     {
-        final String string = this.logMessage.get ();
-        final StringBuilder sb = new StringBuilder ();
-        if (string != null)
-            sb.append (string);
-        this.logMessage.set (sb.append (message).append ('\n').toString ());
+        Platform.runLater ( () -> {
+            final String string = this.logMessage.get ();
+            final StringBuilder sb = new StringBuilder ();
+            if (string != null)
+                sb.append (string);
+            this.logMessage.set (sb.append (message).append ('\n').toString ());
+        });
     }
 
 

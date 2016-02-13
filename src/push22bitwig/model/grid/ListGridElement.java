@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * An element in the grid which contains several text items. Each item can be selected.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber

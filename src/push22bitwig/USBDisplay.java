@@ -20,7 +20,7 @@ import java.util.Iterator;
 
 /**
  * Connects to the display of the Push 2 via USB.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber
@@ -218,7 +218,7 @@ public class USBDisplay
                 }
                 if (descriptor.idVendor () == vendorId && descriptor.idProduct () == productId)
                 {
-                    DeviceHandle handle = new DeviceHandle ();
+                    final DeviceHandle handle = new DeviceHandle ();
                     result = LibUsb.open (device, handle);
                     if (result != LibUsb.SUCCESS)
                     {

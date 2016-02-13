@@ -11,7 +11,7 @@ import java.awt.Label;
  * An element in the grid which can display on option on top and on the bottom of the element. In
  * the middle two texts can be displayed. The texts are not clipped horizontally and can reach into
  * the next elements.
- * 
+ *
  * Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
  *
  * @author J&uuml;rgen Mo&szlig;graber
