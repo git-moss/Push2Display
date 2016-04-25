@@ -75,6 +75,7 @@ public class DisplayEmulator extends Application
     protected final SimpleStringProperty title                       = new SimpleStringProperty ();
     protected final DisplayModel         model                       = new DisplayModel ();
     protected GridPane                   portPane;
+    protected GridPane                   centerGridPane;
     protected StackPane                  loggingContainer;
 
     private File                         configFile                  = null;
@@ -205,20 +206,20 @@ public class DisplayEmulator extends Application
         resetButton.setMinWidth (200);
 
         // The DAW executable path
-        final GridPane centerGridPane = new GridPane ();
-        centerGridPane.getStyleClass ().add ("grid");
+        this.centerGridPane = new GridPane ();
+        this.centerGridPane.getStyleClass ().add ("grid");
         final Label dawPathLabel = new Label ("DAW Path:");
         dawPathLabel.setLabelFor (this.applicationCommand);
         this.applicationCommand.setPrefWidth (400);
-        centerGridPane.add (dawPathLabel, 0, 0);
+        this.centerGridPane.add (dawPathLabel, 0, 0);
         final Label runAutomaticallyLabel = new Label ("Run automatically");
         runAutomaticallyLabel.setLabelFor (this.runAutomatically);
-        centerGridPane.add (new HBox (this.runAutomatically, runAutomaticallyLabel), 2, 0);
+        this.centerGridPane.add (new HBox (this.runAutomatically, runAutomaticallyLabel), 2, 0);
         final Button selectFileButton = new Button ("...");
         selectFileButton.setOnAction (e -> this.selectDAWExecutable ());
         final Button runButton = new Button ("Run");
         runButton.setOnAction (e -> this.runDAW ());
-        centerGridPane.add (new BorderPane (this.applicationCommand, null, new BorderPane (null, null, runButton, null, selectFileButton), null, null), 0, 1, 3, 1);
+        this.centerGridPane.add (new BorderPane (this.applicationCommand, null, new BorderPane (null, null, runButton, null, selectFileButton), null, null), 0, 1, 3, 1);
 
         // The display port configuration
         final TextField portField = new TextField (Integer.toString (this.port));
@@ -240,7 +241,7 @@ public class DisplayEmulator extends Application
         this.portPane.add (new BorderPane (portField, null, applyButton, null, null), 0, 1);
 
         // All options
-        final BorderPane upperPane = new BorderPane (centerGridPane, null, this.portPane, null, null);
+        final BorderPane upperPane = new BorderPane (this.centerGridPane, null, this.portPane, null, null);
         upperPane.getStyleClass ().add ("upperPane");
         final BorderPane centerPart = new BorderPane (this.loggingContainer, upperPane, null, null, null);
         final BorderPane optionsPane = new BorderPane (centerPart, null, null, null, leftGridPane);
@@ -378,7 +379,7 @@ public class DisplayEmulator extends Application
         {
             final String implementationVersion = p.getImplementationVersion ();
             if (implementationVersion != null)
-                title.append (' ').append (implementationVersion);
+                title.append (" v").append (implementationVersion);
         }
         this.title.set (title.toString ());
     }
