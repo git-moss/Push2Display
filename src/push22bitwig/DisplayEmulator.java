@@ -20,6 +20,8 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
@@ -47,6 +49,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ResourceBundle;
 
 
 /**
@@ -79,7 +82,6 @@ public class DisplayEmulator extends Application
     protected StackPane                  loggingContainer;
 
     private File                         configFile                  = null;
-    private final PropertiesEx           properties                  = new PropertiesEx ();
 
     private final UDPReceiver            udpReceiver                 = new UDPReceiver (this.model);
     private final LayoutSettings         layoutSettings              = new LayoutSettings ();
@@ -97,6 +99,8 @@ public class DisplayEmulator extends Application
 
     private double                       minWidth                    = 960;
     private double                       minHeight                   = 160;
+
+    protected final PropertiesEx         properties                  = new PropertiesEx ();
 
 
     /** {@inheritDoc} */
@@ -416,10 +420,11 @@ public class DisplayEmulator extends Application
 
         if (this.configFile.exists ())
         {
-
             try (final FileReader reader = new FileReader (this.configFile))
             {
                 this.properties.load (reader);
+
+                this.properties.restoreStagePlacement (this.stage);
 
                 final String textFont = this.properties.getString (TAG_TEXT_FONT);
                 if (textFont != null)
@@ -498,8 +503,10 @@ public class DisplayEmulator extends Application
     /**
      * Save the settings from the config file.
      */
-    private void saveConfig ()
+    protected void saveConfig ()
     {
+        this.properties.storeStagePlacement (this.stage);
+
         this.properties.putString (TAG_TEXT_FONT, this.layoutSettings.getTextFont ().getFamily ());
         this.properties.putInt (TAG_TEXT_COLOR, this.layoutSettings.getTextColor ().getRGB ());
         this.properties.putInt (TAG_BACKGROUND_COLOR, this.layoutSettings.getBackgroundColor ().getRGB ());
@@ -514,7 +521,9 @@ public class DisplayEmulator extends Application
         }
         catch (final IOException ex)
         {
-            this.model.addLogMessage (ex.getLocalizedMessage ());
+            final String message = new StringBuilder ("Could not store to: ").append (this.configFile.getAbsolutePath ()).append ('\n').append (ex.getLocalizedMessage ()).toString ();
+            this.model.addLogMessage (message);
+            this.message (message);
         }
     }
 
@@ -599,5 +608,23 @@ public class DisplayEmulator extends Application
                 this.model.addLogMessage (ex.getLocalizedMessage ());
             }
         });
+    }
+
+
+    /**
+     * Shows a message dialog. If the message starts with a '@' the message is interpreted as a
+     * identifier for a string located in the resource file.
+     *
+     * @param message The message to display or a resource key
+     * @see ResourceBundle#getString
+     */
+    private void message (final String message)
+    {
+        final Alert alert = new Alert (AlertType.INFORMATION);
+        alert.setTitle (null);
+        alert.setHeaderText (null);
+        alert.setContentText (message);
+        alert.initOwner (this.stage);
+        alert.showAndWait ();
     }
 }

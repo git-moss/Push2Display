@@ -1,5 +1,10 @@
 package push22bitwig.util;
 
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+
+
 /**
  * A little bit improved properties file.
  *
@@ -9,7 +14,15 @@ package push22bitwig.util;
  */
 public class PropertiesEx extends java.util.Properties
 {
-    private static final long serialVersionUID = -739562636951242581L;
+    private static final long   serialVersionUID = -739562636951242581L;
+
+    private static final String MAIN             = "Main";
+    private static final String WINDOW           = "Window";
+    private static final char   H                = 'H';
+    private static final char   W                = 'W';
+    private static final char   Y                = 'Y';
+    private static final char   X                = 'X';
+    private static final String MAXIMIZED        = "Maximized";
 
 
     /**
@@ -245,5 +258,122 @@ public class PropertiesEx extends java.util.Properties
             return super.put (key, value);
         this.remove (key);
         return null;
+    }
+
+
+    /**
+     * Stores the window position, dimension and state of an applications mainframe. Only stores the
+     * information if the frame is visible.
+     *
+     * @param stage The main stage of an application
+     */
+    public void storeStagePlacement (final Stage stage)
+    {
+        this.putWindowPlacement (MAIN, -1, stage);
+        this.putBoolean (MAIN + MAXIMIZED, stage.isMaximized ());
+    }
+
+
+    /**
+     * Restores the window position and dimension of an applications main stage.
+     *
+     * @param stage The main stage of an application
+     */
+    public void restoreStagePlacement (final Stage stage)
+    {
+        this.restoreWindowPlacement (MAIN, stage);
+        stage.setMaximized (this.getBoolean (MAIN + MAXIMIZED));
+    }
+
+
+    /**
+     * Restores the window position and dimension.
+     *
+     * @param name The name of the window
+     * @param window The window to restore
+     */
+    public void restoreWindowPlacement (final String name, final Window window)
+    {
+        this.restoreWindowPlacement (name, -1, window);
+    }
+
+
+    /**
+     * Restores the window position and dimension.
+     *
+     * @param name The name of the window
+     * @param id An identifier for the window
+     * @param window The window to restore
+     */
+    public void restoreWindowPlacement (final String name, final int id, final Window window)
+    {
+        final Rectangle bounds = this.getWindowPlacement (name, id);
+        if (bounds == null)
+            return;
+        window.setX (bounds.getX ());
+        window.setY (bounds.getY ());
+        window.setWidth (bounds.getWidth ());
+        window.setHeight (bounds.getHeight ());
+    }
+
+
+    /**
+     * Get the size of the main window.
+     *
+     * @param name The name of the window
+     * @param id An additional index for the window, e.g. to count child windows
+     * @return The size of the window
+     */
+    public Rectangle getWindowPlacement (final String name, final int id)
+    {
+        final String prop = buildPropertyName (name, id);
+        final double width = this.getDouble (prop + W);
+        final double height = this.getDouble (prop + H);
+        return width <= 0 || height <= 0 ? null : new Rectangle (this.getDouble (prop + X), this.getDouble (prop + Y), width, height);
+    }
+
+
+    /**
+     * Store the position and dimensions of a window.
+     *
+     * @param name The name of the window
+     * @param window The window for which to store the dimensions
+     */
+    public void putWindowPlacement (final String name, final Window window)
+    {
+        this.putWindowPlacement (name, -1, window);
+    }
+
+
+    /**
+     * Store the position and dimensions of a window.
+     *
+     * @param name The name of the window
+     * @param id An identifier for the window
+     * @param window The window for which to store the dimensions
+     */
+    public void putWindowPlacement (final String name, final int id, final Window window)
+    {
+        final String prop = buildPropertyName (name, id);
+        this.putDouble (prop + X, window.getX ());
+        this.putDouble (prop + Y, window.getY ());
+        this.putDouble (prop + W, window.getWidth ());
+        this.putDouble (prop + H, window.getHeight ());
+    }
+
+
+    /**
+     * Builds a window property name from the given name and id.
+     *
+     * @param name A name
+     * @param id An id
+     * @return The property name
+     */
+    private static String buildPropertyName (final String name, final int id)
+    {
+        final StringBuilder propStr = new StringBuilder (name);
+        if (id != -1)
+            propStr.append (id);
+        return propStr.append (WINDOW).toString ();
     }
 }
