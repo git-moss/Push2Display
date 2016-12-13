@@ -328,10 +328,12 @@ public class DisplayEmulator extends Application
     @Override
     public void stop () throws Exception
     {
+        this.model.addLogMessage ("Storing configuration...");
+        this.saveConfig ();
+
+        this.model.addLogMessage ("Stopping UDP...");
         this.udpReceiver.stop ();
         this.usbDisplay.disconnect ();
-
-        this.saveConfig ();
 
         super.stop ();
     }
@@ -358,6 +360,7 @@ public class DisplayEmulator extends Application
      */
     protected void exit (final WindowEvent event)
     {
+        this.model.addLogMessage ("Window exit...");
         event.consume ();
         this.exit ();
     }
@@ -368,7 +371,9 @@ public class DisplayEmulator extends Application
      */
     public void exit ()
     {
+        this.model.addLogMessage ("Exiting platform...");
         Platform.exit ();
+        this.model.addLogMessage ("Exiting platform... Done");
     }
 
 
@@ -565,7 +570,7 @@ public class DisplayEmulator extends Application
     private void selectDAWExecutable ()
     {
         final FileChooser chooser = new FileChooser ();
-        chooser.setTitle ("Select the Bitwig Studio executable file");
+        chooser.setTitle ("Select the DAW executable file");
 
         if (OperatingSystem.get () == OperatingSystem.WINDOWS)
         {
@@ -580,7 +585,7 @@ public class DisplayEmulator extends Application
 
 
     /**
-     * Start Bitwig.
+     * Start the DAW.
      */
     private void runDAW ()
     {

@@ -74,6 +74,7 @@ public class DisplayModel
             if (string != null)
                 sb.append (string);
             this.logMessage.set (sb.append (message).append ('\n').toString ());
+            System.out.println (message);
         });
     }
 

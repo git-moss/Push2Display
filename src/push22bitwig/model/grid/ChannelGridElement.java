@@ -215,7 +215,7 @@ public class ChannelGridElement extends ChannelSelectionGridElement
 
         int buttonTop = faderTop;
 
-        if (type != ChannelType.MASTER && type != ChannelType.LAYER)
+        if (type != ChannelType.LAYER)
         {
             // Rec Arm
             drawButton (gc, left + INSET - 1, buttonTop, controlWidth - 1, buttonHeight - 1, backgroundColor, Color.RED, textColor, this.isArm, "/images/channel/record_arm.svg", layoutSettings);
