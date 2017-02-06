@@ -1,4 +1,4 @@
 Manifest-Version: 1.0
 Implementation-Title: Push2Display
-Implementation-Version: 1.14
+Implementation-Version: 1.15
 Implementation-Vendor: Juergen Mossgraber

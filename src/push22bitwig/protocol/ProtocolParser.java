@@ -212,8 +212,9 @@ public class ProtocolParser
         final int paramValue = parseInteger (in);
         final String paramValueText = parseString (in);
         final boolean isTouched = parseBoolean (in);
+        final int modulatedParamValue = parseInteger (in);
 
-        return new ParamGridElement (menuName, isMenuSelected, name, type, color, isSelected, paramName, paramValue, paramValueText, isTouched);
+        return new ParamGridElement (menuName, isMenuSelected, name, type, color, isSelected, paramName, paramValue, modulatedParamValue, paramValueText, isTouched);
     }
 
 
