@@ -119,21 +119,23 @@ public class ProtocolParser
         final String menuName = parseString (in);
         final boolean isMenuSelected = parseBoolean (in);
         final String name = parseString (in);
-        final String typeText = parseString (in);
+        String typeText = parseString (in);
         final ChannelType type = typeText.length () == 0 ? null : ChannelType.valueOf (typeText.toUpperCase ());
         final Color color = parseColor (in);
         final boolean isSelected = parseBoolean (in);
 
         final int volumeValue = parseInteger (in);
+        final int modulatedVolumeValue = parseInteger (in);
         final String volumeText = parseString (in);
         final int panValue = parseInteger (in);
+        final int modulatedPanValue = parseInteger (in);
         final String panText = parseString (in);
         final int vuValue = parseInteger (in);
         final boolean isMute = parseBoolean (in);
         final boolean isSolo = parseBoolean (in);
         final boolean isArm = parseBoolean (in);
         final int crossfadeMode = parseByte (in);
-        return new ChannelGridElement (editType, menuName, isMenuSelected, name, color, isSelected, type, volumeValue, volumeText, panValue, panText, vuValue, isMute, isSolo, isArm, crossfadeMode);
+        return new ChannelGridElement (editType, menuName, isMenuSelected, name, color, isSelected, type, volumeValue, modulatedVolumeValue, volumeText, panValue, modulatedPanValue, panText, vuValue, isMute, isSolo, isArm, crossfadeMode);
     }
 
 
@@ -156,17 +158,19 @@ public class ProtocolParser
         final String [] sendNames = new String [4];
         final String [] sendTexts = new String [4];
         final int [] sendValues = new int [4];
+        final int [] modulatedSendValues = new int [4];
         final boolean [] sendEdited = new boolean [4];
         for (int i = 0; i < 4; i++)
         {
             sendNames[i] = parseString (in);
             sendTexts[i] = parseString (in);
             sendValues[i] = parseInteger (in);
+            modulatedSendValues[i] = parseInteger (in);
             sendEdited[i] = parseBoolean (in);
         }
 
         final boolean isExMode = parseBoolean (in);
-        return new SendsGridElement (sendNames, sendTexts, sendValues, sendEdited, menuName, isMenuSelected, name, color, isSelected, type, isExMode);
+        return new SendsGridElement (sendNames, sendTexts, sendValues, modulatedSendValues, sendEdited, menuName, isMenuSelected, name, color, isSelected, type, isExMode);
     }
 
 

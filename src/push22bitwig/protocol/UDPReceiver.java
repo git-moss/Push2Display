@@ -20,14 +20,13 @@ import java.util.List;
  */
 public class UDPReceiver
 {
-    private static final int     DISPLAY_COMMAND_SHUTDOWN = -1;
-    private static final int     DISPLAY_COMMAND_GRID     = 10;
+    private static final int     DISPLAY_COMMAND_GRID = 10;
 
     private DisplayModel         model;
     private DatagramSocket       socket;
-    private final ProtocolParser parser                   = new ProtocolParser ();
+    private final ProtocolParser parser               = new ProtocolParser ();
 
-    private final Object         socketLock               = new Object ();
+    private final Object         socketLock           = new Object ();
 
 
     /**
@@ -132,12 +131,6 @@ public class UDPReceiver
                     {
                         this.model.addLogMessage ("Unparsable grid element message: " + ex.getLocalizedMessage ());
                     }
-                    break;
-
-                // Shutdown
-                case DISPLAY_COMMAND_SHUTDOWN:
-                    // TODO Requires Bitwig fix
-                    // this.model.shutdown ();
                     break;
 
                 default:

@@ -25,11 +25,10 @@ public class ChannelSelectionGridElement extends AbstractGridElement
 
     protected static final int                        TRACK_ROW_HEIGHT = (int) (1.6 * UNIT);
 
-
     static
     {
         ICONS.put (ChannelType.AUDIO, "/images/track/audio_track.svg");
-        ICONS.put (ChannelType.INST, "/images/track/instrument_track.svg");
+        ICONS.put (ChannelType.INSTRUMENT, "/images/track/instrument_track.svg");
         ICONS.put (ChannelType.GROUP, "/images/track/group_track.svg");
         ICONS.put (ChannelType.EFFECT, "/images/track/return_track.svg");
         ICONS.put (ChannelType.HYBRID, "/images/track/hybrid_track.svg");

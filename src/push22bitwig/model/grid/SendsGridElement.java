@@ -19,34 +19,41 @@ import java.io.IOException;
  */
 public class SendsGridElement extends ChannelSelectionGridElement
 {
-    final String []    sendNames  = new String []
-                                    {
-                                            "",
-                                            "",
-                                            "",
-                                            ""
-                                    };
-    final String []    sendTexts  = new String []
-                                    {
-                                            "",
-                                            "",
-                                            "",
-                                            ""
-                                    };
-    final int []       sendValues = new int []
-                                    {
-                                            0,
-                                            0,
-                                            0,
-                                            0
-                                    };
-    private boolean [] sendEdited = new boolean []
-                                    {
-                                            false,
-                                            false,
-                                            false,
-                                            false
-                                    };
+    final String []    sendNames           = new String []
+    {
+            "",
+            "",
+            "",
+            ""
+    };
+    final String []    sendTexts           = new String []
+    {
+            "",
+            "",
+            "",
+            ""
+    };
+    final int []       sendValues          = new int []
+    {
+            0,
+            0,
+            0,
+            0
+    };
+    final int []       modulatedSendValues = new int []
+    {
+            0,
+            0,
+            0,
+            0
+    };
+    private boolean [] sendEdited          = new boolean []
+    {
+            false,
+            false,
+            false,
+            false
+    };
     private boolean    isExMode;
 
 
@@ -56,6 +63,7 @@ public class SendsGridElement extends ChannelSelectionGridElement
      * @param sendNames The names of the send tracks
      * @param sendTexts The texts of the sends volumes
      * @param sendValues The values of the sends volumes
+     * @param modulatedSendValues The modulated values of the sends volumes, -1 if not modulated
      * @param sendEdited The states of which send can be edited
      * @param menuName The text for the menu
      * @param isMenuSelected True if the menu is selected
@@ -65,7 +73,7 @@ public class SendsGridElement extends ChannelSelectionGridElement
      * @param type The type of the track
      * @param isExMode True if the sends grid element is an extension for a track grid element
      */
-    public SendsGridElement (final String [] sendNames, final String [] sendTexts, final int [] sendValues, final boolean [] sendEdited, final String menuName, final boolean isMenuSelected, final String name, final Color color, final boolean isSelected, final ChannelType type, final boolean isExMode)
+    public SendsGridElement (final String [] sendNames, final String [] sendTexts, final int [] sendValues, final int [] modulatedSendValues, final boolean [] sendEdited, final String menuName, final boolean isMenuSelected, final String name, final Color color, final boolean isSelected, final ChannelType type, final boolean isExMode)
     {
         super (menuName, isMenuSelected, name, color, isSelected, type);
         for (int i = 0; i < 4; i++)
@@ -73,6 +81,7 @@ public class SendsGridElement extends ChannelSelectionGridElement
             this.sendNames[i] = sendNames[i];
             this.sendTexts[i] = sendTexts[i];
             this.sendValues[i] = sendValues[i];
+            this.modulatedSendValues[i] = modulatedSendValues[i];
             this.sendEdited[i] = sendEdited[i];
         }
 
@@ -124,9 +133,11 @@ public class SendsGridElement extends ChannelSelectionGridElement
             gc.setColor (borderColor);
             gc.fillRect (faderLeft, topy + SEPARATOR_SIZE, sliderWidth, sliderHeight);
             final int valueWidth = (int) (this.sendValues[i] * sliderWidth / getMaxValue ());
+            final boolean isSendModulated = this.modulatedSendValues[i] != 16383; // == -1
+            final int modulatedValueWidth = isSendModulated ? (int) (this.modulatedSendValues[i] * sliderWidth / getMaxValue ()) : valueWidth;
             gc.setColor (faderColor);
             final int faderTop = topy + SEPARATOR_SIZE + 1;
-            gc.fillRect (faderLeft + 1, faderTop, valueWidth - 1, sliderHeight - 2);
+            gc.fillRect (faderLeft + 1, faderTop, modulatedValueWidth - 1, sliderHeight - 2);
 
             if (this.sendEdited[i])
             {

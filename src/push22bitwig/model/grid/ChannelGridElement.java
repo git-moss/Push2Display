@@ -33,8 +33,10 @@ public class ChannelGridElement extends ChannelSelectionGridElement
 
     private final int       editType;
     private final int       volumeValue;
+    private final int       modulatedVolumeValue;
     private final String    volumeText;
     private final int       panValue;
+    private final int       modulatedPanValue;
     private final String    panText;
     private final int       vuValue;
     private final boolean   isMute;
@@ -54,8 +56,10 @@ public class ChannelGridElement extends ChannelSelectionGridElement
      * @param isSelected True if the grid element is selected
      * @param type The type of the track
      * @param volumeValue The value of the volume
+     * @param modulatedVolumeValue The modulated value of the volume, -1 if not modulated
      * @param volumeText The textual form of the volumes value
      * @param panValue The value of the panorama
+     * @param modulatedPanValue The modulated value of the panorama, -1 if not modulated
      * @param panText The textual form of the panorama
      * @param vuValue The value of the VU
      * @param isMute True if muted
@@ -63,14 +67,16 @@ public class ChannelGridElement extends ChannelSelectionGridElement
      * @param isArm True if recording is armed
      * @param crossfadeMode The crossfader mode: 0 = A, 1 = AB, B = 2, -1 turns it off
      */
-    public ChannelGridElement (final int editType, final String menuName, final boolean isMenuSelected, final String name, final Color color, final boolean isSelected, final ChannelType type, final int volumeValue, final String volumeText, final int panValue, final String panText, final int vuValue, final boolean isMute, final boolean isSolo, final boolean isArm, final int crossfadeMode)
+    public ChannelGridElement (final int editType, final String menuName, final boolean isMenuSelected, final String name, final Color color, final boolean isSelected, final ChannelType type, final int volumeValue, final int modulatedVolumeValue, final String volumeText, final int panValue, final int modulatedPanValue, final String panText, final int vuValue, final boolean isMute, final boolean isSolo, final boolean isArm, final int crossfadeMode)
     {
         super (menuName, isMenuSelected, name, color, isSelected, type);
 
         this.editType = editType;
         this.volumeValue = volumeValue;
+        this.modulatedVolumeValue = modulatedVolumeValue;
         this.volumeText = volumeText;
         this.panValue = panValue;
+        this.modulatedPanValue = modulatedPanValue;
         this.panText = panText;
         this.vuValue = vuValue;
         this.isMute = isMute;
@@ -162,41 +168,32 @@ public class ChannelGridElement extends ChannelSelectionGridElement
         final Color faderColor = layoutSettings.getFaderColor ();
         gc.setColor (faderColor);
         final boolean isPanTouched = this.panText.length () > 0;
-        if (this.panValue > halfMax)
-        {
-            // Panned to the right
-            final int v = (int) ((this.panValue - halfMax) * panRange / halfMax);
-            gc.fillRect (panMiddle + 1, CONTROLS_TOP + 1, v, panHeight);
-            if (this.editType == EDIT_TYPE_PAN || this.editType == EDIT_TYPE_ALL)
-            {
-                gc.setColor (editColor);
-                final int w = isPanTouched ? 3 : 1;
-                gc.fillRect (Math.min (panMiddle + panRange - w, panMiddle + v), CONTROLS_TOP + 1, w, panHeight);
 
-            }
-        }
-        else
+        // Panned to the left or right?
+        final boolean isRight = this.panValue > halfMax;
+        final boolean isModulatedRight = this.modulatedPanValue > halfMax;
+        final int v = (int) (isRight ? (this.panValue - halfMax) * panRange / halfMax : panRange - this.panValue * panRange / halfMax);
+        final boolean isPanModulated = this.modulatedPanValue != 16383; // == -1
+        final int vMod = isPanModulated ? (int) (isModulatedRight ? (this.modulatedPanValue - halfMax) * panRange / halfMax : panRange - this.modulatedPanValue * panRange / halfMax) : v;
+        gc.fillRect ((isPanModulated ? isModulatedRight : isRight) ? panMiddle + 1 : panMiddle - vMod, CONTROLS_TOP + 1, vMod, panHeight);
+        if (this.editType == EDIT_TYPE_PAN || this.editType == EDIT_TYPE_ALL)
         {
-            // Panned to the left
-            final int v = (int) (panRange - this.panValue * panRange / halfMax);
-            gc.fillRect (panMiddle - v, CONTROLS_TOP + 1, v, panHeight);
-            if (this.editType == EDIT_TYPE_PAN || this.editType == EDIT_TYPE_ALL)
-            {
-                gc.setColor (editColor);
-                final int w = isPanTouched ? 3 : 1;
-                gc.fillRect (Math.max (panMiddle - panRange, panMiddle - v), CONTROLS_TOP + 1, w, panHeight);
-
-            }
+            gc.setColor (editColor);
+            final int w = isPanTouched ? 3 : 1;
+            final int start = isRight ? Math.min (panMiddle + panRange - w, panMiddle + v) : Math.max (panMiddle - panRange, panMiddle - v);
+            gc.fillRect (start, CONTROLS_TOP + 1, w, panHeight);
         }
 
         // Volume slider
         // Ensure that maximum value is reached even if rounding errors happen
         final int volumeWidth = controlWidth - 2 * SEPARATOR_SIZE - faderOffset;
         final int volumeHeight = (int) (this.volumeValue >= maxValue - 1 ? faderInnerHeight : faderInnerHeight * this.volumeValue / maxValue);
-        final int volumeOffset = faderInnerHeight - volumeHeight;
-        final int volumeTop = faderTop + SEPARATOR_SIZE + volumeOffset;
+        final boolean isVolumeModulated = this.modulatedVolumeValue != 16383; // == -1
+        final int modulatedVolumeHeight = isVolumeModulated ? (int) (this.modulatedVolumeValue >= maxValue - 1 ? faderInnerHeight : faderInnerHeight * this.modulatedVolumeValue / maxValue) : volumeHeight;
+        final int volumeTop = faderTop + SEPARATOR_SIZE + faderInnerHeight - volumeHeight;
+        final int modulatedVolumeTop = isVolumeModulated ? faderTop + SEPARATOR_SIZE + faderInnerHeight - modulatedVolumeHeight : volumeTop;
         gc.setColor (faderColor);
-        gc.fillRect (faderLeft, volumeTop, volumeWidth, volumeHeight);
+        gc.fillRect (faderLeft, modulatedVolumeTop, volumeWidth, modulatedVolumeHeight);
         final boolean isVolumeTouched = this.volumeText.length () > 0;
         if (this.editType == EDIT_TYPE_VOLUME || this.editType == EDIT_TYPE_ALL)
         {
