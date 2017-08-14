@@ -64,6 +64,10 @@ public class DisplayEmulator extends Application
     private static final String          TAG_TEXT_FONT               = "TEXT_FONT";
     private static final String          TAG_TEXT_COLOR              = "TEXT_COLOR";
     private static final String          TAG_BACKGROUND_COLOR        = "BACKGROUND_COLOR";
+    private static final String          TAG_BORDER_COLOR            = "TAG_BORDER_COLOR";
+    private static final String          TAG_FADER_COLOR             = "TAG_FADER_COLOR";
+    private static final String          TAG_VU_COLOR                = "TAG_VU_COLOR";
+    private static final String          TAG_EDIT_COLOR              = "TAG_EDIT_COLOR";
     private static final String          TAG_PORT                    = "PORT";
     private static final String          TAG_PREVIEW                 = "PREVIEW";
     private static final String          TAG_BITWIG_COMMAND          = "BITWIG_COMMAND";
@@ -431,22 +435,48 @@ public class DisplayEmulator extends Application
 
                 this.properties.restoreStagePlacement (this.stage);
 
+                // Text font
                 final String textFont = this.properties.getString (TAG_TEXT_FONT);
                 if (textFont != null)
                     this.layoutSettings.setTextFont (textFont);
 
-                final int textColor = this.properties.getInt (TAG_TEXT_COLOR, java.awt.Color.ORANGE.getRGB ());
-                this.layoutSettings.setTextColor (new java.awt.Color (textColor));
-                SVGImage.clearCache ();
+                // Text color
+                final int textColor = this.properties.getInt (TAG_TEXT_COLOR);
+                if (textColor != -1)
+                    this.layoutSettings.setTextColor (new java.awt.Color (textColor));
 
-                final int backgroundColor = this.properties.getInt (TAG_BACKGROUND_COLOR, java.awt.Color.BLACK.getRGB ());
-                this.layoutSettings.setBackgroundColor (new java.awt.Color (backgroundColor));
+                // Background color
+                final int backgroundColor = this.properties.getInt (TAG_BACKGROUND_COLOR);
+                if (backgroundColor != -1)
+                    this.layoutSettings.setBackgroundColor (new java.awt.Color (backgroundColor));
 
+                // Border color
+                final int borderColor = this.properties.getInt (TAG_BORDER_COLOR);
+                if (borderColor != -1)
+                    this.layoutSettings.setBorderColor (new java.awt.Color (borderColor));
+
+                // Fader color
+                final int faderColor = this.properties.getInt (TAG_FADER_COLOR);
+                if (faderColor != -1)
+                    this.layoutSettings.setFaderColor (new java.awt.Color (faderColor));
+
+                // VU color
+                final int vuColor = this.properties.getInt (TAG_VU_COLOR);
+                if (vuColor != -1)
+                    this.layoutSettings.setVuColor (new java.awt.Color (vuColor));
+
+                // Edit color
+                final int editColor = this.properties.getInt (TAG_EDIT_COLOR);
+                if (editColor != -1)
+                    this.layoutSettings.setEditColor (new java.awt.Color (editColor));
+
+                // Other settings
                 this.port = this.properties.getInt (TAG_PORT, 7000);
                 this.enablePreview = this.properties.getBoolean (TAG_PREVIEW, true);
-
                 this.applicationCommand.setText (this.properties.getString (TAG_BITWIG_COMMAND, this.getDefaultApplicationPath ()));
                 this.runAutomatically.setSelected (this.properties.getBoolean (TAG_RUN_AUTOMATICALLY, true));
+
+                SVGImage.clearCache ();
             }
             catch (final IOException ex)
             {
@@ -515,6 +545,11 @@ public class DisplayEmulator extends Application
         this.properties.putString (TAG_TEXT_FONT, this.layoutSettings.getTextFont ().getFamily ());
         this.properties.putInt (TAG_TEXT_COLOR, this.layoutSettings.getTextColor ().getRGB ());
         this.properties.putInt (TAG_BACKGROUND_COLOR, this.layoutSettings.getBackgroundColor ().getRGB ());
+        this.properties.putInt (TAG_BORDER_COLOR, this.layoutSettings.getBorderColor ().getRGB ());
+        this.properties.putInt (TAG_FADER_COLOR, this.layoutSettings.getFaderColor ().getRGB ());
+        this.properties.putInt (TAG_VU_COLOR, this.layoutSettings.getVuColor ().getRGB ());
+        this.properties.putInt (TAG_EDIT_COLOR, this.layoutSettings.getEditColor ().getRGB ());
+
         this.properties.putInt (TAG_PORT, this.port);
         this.properties.putBoolean (TAG_PREVIEW, this.enablePreview);
         this.properties.putString (TAG_BITWIG_COMMAND, this.applicationCommand.getText ());
@@ -598,8 +633,8 @@ public class DisplayEmulator extends Application
                     case MAC:
                         final String [] cmd = new String []
                         {
-                                "open",
-                                text
+                            "open",
+                            text
                         };
                         Runtime.getRuntime ().exec (cmd);
                         break;
