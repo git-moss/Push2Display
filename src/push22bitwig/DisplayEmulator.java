@@ -80,16 +80,16 @@ public class DisplayEmulator extends Application
     private static final int             MIN_WIDTH_LEFT              = 200;
 
     protected final SimpleStringProperty title                       = new SimpleStringProperty ();
-    protected final DisplayModel         model                       = new DisplayModel ();
+    protected final DisplayModel         displayModel                = new DisplayModel ();
     protected GridPane                   portPane;
     protected GridPane                   centerGridPane;
     protected StackPane                  loggingContainer;
 
     private File                         configFile                  = null;
 
-    private final UDPReceiver            udpReceiver                 = new UDPReceiver (this.model);
+    private final UDPReceiver            udpReceiver                 = new UDPReceiver (this.displayModel);
     private final LayoutSettings         layoutSettings              = new LayoutSettings ();
-    private final VirtualDisplay         virtualDisplay              = new VirtualDisplay (this.model, this.layoutSettings);
+    private final VirtualDisplay         virtualDisplay              = new VirtualDisplay (this.displayModel, this.layoutSettings);
     private final USBDisplay             usbDisplay                  = new USBDisplay ();
     private final Canvas                 canvas                      = new Canvas ();
     private final TextArea               loggingTextArea             = new TextArea ();
@@ -115,7 +115,7 @@ public class DisplayEmulator extends Application
         this.setTitle ();
         this.loadConfig ();
         final Scene scene = this.createUI ();
-        this.model.addShutdownListener ((ChangeListener<Boolean>) (observable, oldValue, newValue) -> this.exit ());
+        this.displayModel.addShutdownListener ((ChangeListener<Boolean>) (observable, oldValue, newValue) -> this.exit ());
         this.showStage (stage, scene);
         this.startup ();
     }
@@ -159,7 +159,7 @@ public class DisplayEmulator extends Application
         }
         catch (final LibUsbException ex)
         {
-            this.model.addLogMessage (ex.getLocalizedMessage ());
+            this.displayModel.addLogMessage (ex.getLocalizedMessage ());
         }
     }
 
@@ -323,7 +323,7 @@ public class DisplayEmulator extends Application
         vuColorButton.valueProperty ().set (toFXColor (this.layoutSettings.getVuColor ()));
         editColorButton.valueProperty ().set (toFXColor (this.layoutSettings.getEditColor ()));
 
-        this.loggingTextArea.textProperty ().bind (this.model.getLogMessageProperty ());
+        this.loggingTextArea.textProperty ().bind (this.displayModel.getLogMessageProperty ());
         return scene;
     }
 
@@ -332,10 +332,10 @@ public class DisplayEmulator extends Application
     @Override
     public void stop () throws Exception
     {
-        this.model.addLogMessage ("Storing configuration...");
+        this.displayModel.addLogMessage ("Storing configuration...");
         this.saveConfig ();
 
-        this.model.addLogMessage ("Stopping UDP...");
+        this.displayModel.addLogMessage ("Stopping UDP...");
         this.udpReceiver.stop ();
         this.usbDisplay.disconnect ();
 
@@ -364,7 +364,7 @@ public class DisplayEmulator extends Application
      */
     protected void exit (final WindowEvent event)
     {
-        this.model.addLogMessage ("Window exit...");
+        this.displayModel.addLogMessage ("Window exit...");
         event.consume ();
         this.exit ();
     }
@@ -375,9 +375,9 @@ public class DisplayEmulator extends Application
      */
     public void exit ()
     {
-        this.model.addLogMessage ("Exiting platform...");
+        this.displayModel.addLogMessage ("Exiting platform...");
         Platform.exit ();
-        this.model.addLogMessage ("Exiting platform... Done");
+        this.displayModel.addLogMessage ("Exiting platform... Done");
     }
 
 
@@ -480,7 +480,7 @@ public class DisplayEmulator extends Application
             }
             catch (final IOException ex)
             {
-                this.model.addLogMessage (ex.getLocalizedMessage ());
+                this.displayModel.addLogMessage (ex.getLocalizedMessage ());
             }
         }
         else
@@ -562,7 +562,7 @@ public class DisplayEmulator extends Application
         catch (final IOException ex)
         {
             final String message = new StringBuilder ("Could not store to: ").append (this.configFile.getAbsolutePath ()).append ('\n').append (ex.getLocalizedMessage ()).toString ();
-            this.model.addLogMessage (message);
+            this.displayModel.addLogMessage (message);
             this.message (message);
         }
     }
@@ -645,7 +645,7 @@ public class DisplayEmulator extends Application
             }
             catch (final IOException ex)
             {
-                this.model.addLogMessage (ex.getLocalizedMessage ());
+                this.displayModel.addLogMessage (ex.getLocalizedMessage ());
             }
         });
     }
