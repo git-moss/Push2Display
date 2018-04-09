@@ -87,7 +87,7 @@ public class DisplayEmulator extends Application
 
     private File                         configFile                  = null;
 
-    private final UDPReceiver            udpReceiver                 = new UDPReceiver (this.displayModel);
+    public UDPReceiver                   udpReceiver                 = new UDPReceiver (this.displayModel);
     private final LayoutSettings         layoutSettings              = new LayoutSettings ();
     private final VirtualDisplay         virtualDisplay              = new VirtualDisplay (this.displayModel, this.layoutSettings);
     private final USBDisplay             usbDisplay                  = new USBDisplay ();
@@ -96,7 +96,7 @@ public class DisplayEmulator extends Application
     private final TextField              applicationCommand          = new TextField ();
     private final CheckBox               runAutomatically            = new CheckBox ();
     private final ComboBox<String>       fontBox                     = new ComboBox<> ();
-    private Stage                        stage;
+    protected Stage                      stage;
 
     private int                          port                        = 7000;
     private boolean                      enablePreview               = true;

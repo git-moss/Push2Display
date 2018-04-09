@@ -27,6 +27,7 @@ public class ChannelSelectionGridElement extends AbstractGridElement
 
     static
     {
+        ICONS.put (ChannelType.UNKNOWN, "/images/track/hybrid_track.svg");
         ICONS.put (ChannelType.AUDIO, "/images/track/audio_track.svg");
         ICONS.put (ChannelType.INSTRUMENT, "/images/track/instrument_track.svg");
         ICONS.put (ChannelType.GROUP, "/images/track/group_track.svg");

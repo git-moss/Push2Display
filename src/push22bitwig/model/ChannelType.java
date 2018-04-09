@@ -9,6 +9,8 @@ package push22bitwig.model;
  */
 public enum ChannelType
 {
+    /** A Track of unknown type. */
+    UNKNOWN,
     /** Audio Track */
     AUDIO,
     /** Instrument Track */

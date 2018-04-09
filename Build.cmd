@@ -2,7 +2,7 @@
 
 rem Paths to tools
 set TOOLS=C:\Programme\JavaTools
-set ANT_HOME=%TOOLS%\apache-ant-1.9.4
+set ANT_HOME=%TOOLS%\apache-ant-1.10.3
 
 
 rem Options
